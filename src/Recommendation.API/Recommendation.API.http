@@ -1,0 +1,16 @@
+@Recommendation.API_HostAddress = http://localhost:8080
+
+GET {{Recommendation.API_HostAddress}}/browsing-history/user-120
+Accept: application/json
+
+###
+
+DELETE {{Recommendation.API_HostAddress}}/browsing-history/user-120/product-5
+Accept: application/json
+
+###
+
+GET {{Recommendation.API_HostAddress}}/best-sellers/user-120
+Accept: application/json
+
+###
