@@ -17,8 +17,8 @@ A real-time product recommendation system for e-commerce platforms, built with .
 │ product-views   │────▶│ ViewProducer │────▶│ Apache Kafka    │
 │ .json           │     │ Worker       │     │ product-views   │
 └─────────────────┘     └──────────────┘     └────────┬────────┘
-                                                      │
-                                                      ▼
+                                                       │
+                                                       ▼
 ┌─────────────────┐     ┌──────────────┐     ┌─────────────────┐
 │ PostgreSQL      │◀────│ ETL Service  │     │ ViewStream      │
 │ (orders)        │     │ (Quartz.NET) │     │ Worker          │
@@ -28,21 +28,19 @@ A real-time product recommendation system for e-commerce platforms, built with .
          │                                     ┌─────────────────┐
          │                                     │ Redis           │
          │                                     │ Sorted Set      │
-         │                                     └────────┬────────┘
-         │                                              │
-         └──────────────────┬───────────────────────────┘
-                            │
-                            ▼
-                     ┌─────────────────┐
-                     │ Recommendation  │
-                     │ API             │
-                     └────────┬────────┘
-                              │
-                              ▼
-                     ┌─────────────────┐
-                     │ Web/Mobile      │
-                     │ Client          │
-                     └─────────────────┘
+         └───────────────┬───────────────────────────┘
+                        │
+                        ▼
+                 ┌─────────────────┐
+                 │ Recommendation  │
+                 │ API             │
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │ Web/Mobile      │
+                 │ Client          │
+                 └─────────────────┘
 ```
 
 ## 📁 Project Structure
@@ -150,29 +148,22 @@ GET /best-sellers/{userId}
 }
 ```
 
-## 📋 Business Rules
+### Search Products
+```http
+GET /search?q={query}&strategy={prefix|fuzzy|tfidf}&limit={n}
+```
 
-| Rule | Description |
-|------|-------------|
-| **Minimum 5 Products** | If result has < 5 products, return empty list |
-| **Max 3 Categories** | Personalized recommendations use at most 3 categories from browsing history |
-| **Distinct User Count** | "Best seller" = most unique buyers (not total sales) |
-| **30-Day Filter** | Best sellers calculated from last 30 days only |
-| **Max 10 History Items** | Redis stores max 10 products per user (FIFO) |
-
-## 🛠️ Technology Stack
-
-| Component | Technology |
-|-----------|------------|
-| Runtime | .NET 8 |
-| Web API | ASP.NET Core |
-| Workers | .NET Generic Host + BackgroundService |
-| Message Broker | Apache Kafka (Confluent) |
-| Cache | Redis (Sorted Set) |
-| Database | PostgreSQL + EF Core |
-| Scheduler | Quartz.NET |
-| Testing | xUnit + Moq + FluentAssertions |
-| Containerization | Docker + Docker Compose |
+**Response (200 OK):**
+```json
+{
+  "query": "head",
+  "strategy": "prefix",
+  "results": [
+    { "productId": "product-1", "name": "Wireless Headphones", "category": "electronics", "score": 1.0 }
+  ],
+  "elapsed-ms": 3
+}
+```
 
 ## 🧪 Testing
 
@@ -188,31 +179,28 @@ dotnet test EcommerceRecommendation.sln --collect:"XPlat Code Coverage"
 - Controller tests (BrowsingHistory, BestSellers)
 - Service tests (BrowsingHistory, BestSeller)
 - ETL job tests
+- Search module tests (Trie, Fuzzy, TF-IDF, Cache, SearchController)
 
-## 📊 Services
+## 🔍 Search Module
 
-### ViewProducer.Worker
-- Reads `product-views.json` line by line
-- Adds timestamp to each event
-- Publishes to Kafka topic `product-views` (1 event/second)
-- Loops back to start when file ends
+- **Strategies:** Prefix (Trie), Fuzzy (Levenshtein), TF-IDF
+- **Thread-safety:** Immutable Trie for reads, ConcurrentDictionary for TF-IDF and cache
+- **Cache:** TTL-based (configurable), key = `{strategy}:{query}:{limit}`
+- **Defaults:** strategy=`prefix`, limit=`10`, cache TTL=`5 min`
 
-### ViewStream.Worker
-- Consumes from Kafka `product-views` topic
-- Stores in Redis Sorted Set: `browsing_history:{userId}`
-- Maintains max 10 items per user (removes oldest)
+## 📈 Benchmarks
 
-### Recommendation.ETL
-- Runs daily at 02:00 (configurable via Quartz cron)
-- Calculates category-based best sellers
-- Calculates general best sellers
-- Stores in `bestsellers_by_category` and `bestsellers_general` tables
+Run benchmarks:
+```bash
+dotnet run --project benchmarks/Recommendation.Benchmarks -c Release
+```
 
-### Recommendation.API
-- REST API with Swagger documentation
-- Connects to Redis for browsing history
-- Connects to PostgreSQL for best sellers
-- Implements all business rules
+Latest summary (example):
+- PrefixSearch: ~290 ns (100–10,000 products)
+- FuzzySearch: ~301–311 ns
+- TfIdfSearch: ~301–307 ns
+- ListAccess: ~25.7 µs
+- ConcurrentDictionaryAccess: ~285 µs
 
 ## 🔧 Configuration
 
@@ -239,7 +227,7 @@ services:
   api             # REST API (port 8080)
 ```
 
-## 📝 Database Schema
+## 📄 Database Schema
 
 ### Tables (Provided)
 - `product` - Product catalog (id, name, category, price)
@@ -249,6 +237,17 @@ services:
 ### Tables (Created by ETL)
 - `bestsellers_by_category` - Category-based best sellers
 - `bestsellers_general` - General best sellers
+
+## 📊 Database Context (EF Core)
+
+The `ApplicationDbContext` class maps the above tables to entities:
+- `DbSet<Product> Products`
+- `DbSet<Order> Orders`
+- `DbSet<OrderItem> OrderItems`
+- `DbSet<BestSellerByCategory> BestsellersByCategory`
+- `DbSet<BestSellerGeneral> BestsellersGeneral`
+
+Entity configurations (primary keys, column names, relationships) are defined in `OnModelCreating` to match the schema exactly.
 
 ## 🔍 Monitoring
 

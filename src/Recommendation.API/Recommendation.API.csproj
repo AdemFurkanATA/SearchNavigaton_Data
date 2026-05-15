@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Recommendation.Data\Recommendation.Data.csproj" />
     <ProjectReference Include="..\Recommendation.Shared\Recommendation.Shared.csproj" />
+    <ProjectReference Include="..\Recommendation.Search\Recommendation.Search.csproj" />
   </ItemGroup>
 
 </Project>

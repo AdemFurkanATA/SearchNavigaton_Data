@@ -1,10 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,11 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Recommendation.API\Recommendation.API.csproj" />
-    <ProjectReference Include="..\..\src\Recommendation.Data\Recommendation.Data.csproj" />
     <ProjectReference Include="..\..\src\Recommendation.Search\Recommendation.Search.csproj" />
-    <ProjectReference Include="..\..\src\Recommendation.Shared\Recommendation.Shared.csproj" />
-    <ProjectReference Include="..\..\src\ViewStream.Worker\ViewStream.Worker.csproj" />
+    <ProjectReference Include="..\..\src\Recommendation.Data\Recommendation.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Recommendation.API.Services;
 using Recommendation.Data.Contexts;
+using Recommendation.Search.Extensions;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,7 @@ builder.Services.AddSingleton<IDatabase>(provider =>
 
 builder.Services.AddScoped<IBrowsingHistoryService, BrowsingHistoryService>();
 builder.Services.AddScoped<IBestSellerService, BestSellerService>();
+builder.Services.AddRecommendationSearch(builder.Configuration);
 
 var app = builder.Build();
 
