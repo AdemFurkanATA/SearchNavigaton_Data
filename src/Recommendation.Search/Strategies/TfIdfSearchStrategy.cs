@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Recommendation.Data.Contexts;
 using Recommendation.Search.Models;
 using Recommendation.Search.Options;
 using Recommendation.Search.Services;
@@ -9,7 +7,6 @@ using Recommendation.Search.TfIdf;
 namespace Recommendation.Search.Strategies;
 
 public sealed class TfIdfSearchStrategy(
-    ApplicationDbContext dbContext,
     SearchCacheService cacheService,
     IOptions<SearchOptions> options,
     TfIdfIndex index) : ISearchStrategy
@@ -25,8 +22,7 @@ public sealed class TfIdfSearchStrategy(
         var results = cacheService.GetOrAdd(cacheKey, () =>
         {
             var tokens = Tokenize(normalized).ToList();
-            var products = dbContext.Products.AsNoTracking().ToList();
-            var scores = index.Search(products, tokens);
+            var scores = index.Search(tokens);
 
             return scores
                 .OrderByDescending(x => x.score)

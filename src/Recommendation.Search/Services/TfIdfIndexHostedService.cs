@@ -12,7 +12,7 @@ public sealed class TfIdfIndexHostedService(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await index.BuildAsync(dbContext, stoppingToken);
+        await index.BuildAsync(dbContext, stoppingToken).ConfigureAwait(false);
         logger.LogInformation("TF-IDF index initialized.");
     }
 }

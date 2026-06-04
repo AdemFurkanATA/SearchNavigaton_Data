@@ -180,13 +180,23 @@ dotnet test EcommerceRecommendation.sln --collect:"XPlat Code Coverage"
 - Service tests (BrowsingHistory, BestSeller)
 - ETL job tests
 - Search module tests (Trie, Fuzzy, TF-IDF, Cache, SearchController)
+- TF-IDF relevance tests (no-match returns empty, more relevant document ranks higher)
 
 ## 🔍 Search Module
 
 - **Strategies:** Prefix (Trie), Fuzzy (Levenshtein), TF-IDF
-- **Thread-safety:** Immutable Trie for reads, ConcurrentDictionary for TF-IDF and cache
+- **Thread-safety:** Immutable Trie for prefix search, atomic TF-IDF snapshot swap (`Volatile.Read/Write`), thread-safe cache
 - **Cache:** TTL-based (configurable), key = `{strategy}:{query}:{limit}`
 - **Defaults:** strategy=`prefix`, limit=`10`, cache TTL=`5 min`
+
+### TF-IDF Index Design (Updated)
+
+- **Inverted index:** Built as `term -> (productId, tf-idf score)` postings so query time touches only relevant documents
+- **No brute-force scan:** Search does not iterate every product; it aggregates scores only from matched term postings
+- **Chunked build:** Product loading is paged (`Skip/Take`, page size 500) to avoid full-table memory spikes
+- **Parallel build:** Each page is processed with `Parallel.ForEachAsync` (CPU-count degree), shared counters use `Interlocked`
+- **Read-optimized storage:** Final index and product lookup are published as `FrozenDictionary` snapshots
+- **Safe rebuilds:** New index is prepared off-thread and swapped atomically, so ongoing reads remain consistent
 
 ## 📈 Benchmarks
 

@@ -60,7 +60,7 @@ public class SearchStrategyBenchmarks
         _prefix = new PrefixTreeSearchStrategy(_dbContext, _cache, searchOptions, NullLogger<PrefixTreeSearchStrategy>.Instance);
         await _prefix.StartAsync(CancellationToken.None);
         _fuzzy = new FuzzySearchStrategy(_dbContext, _cache, searchOptions);
-        _tfidf = new TfIdfSearchStrategy(_dbContext, _cache, searchOptions, _index);
+        _tfidf = new TfIdfSearchStrategy(_cache, searchOptions, _index);
     }
 
     [Benchmark]
