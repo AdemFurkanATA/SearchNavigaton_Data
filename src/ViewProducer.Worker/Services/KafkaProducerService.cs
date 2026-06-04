@@ -23,7 +23,8 @@ public sealed class KafkaProducerService : IKafkaProducerService, IDisposable
     public async Task ProduceAsync(string payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await _producer.ProduceAsync(_topic, new Message<Null, string> { Value = payload }, cancellationToken);
+        await _producer.ProduceAsync(_topic, new Message<Null, string> { Value = payload }, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public void Dispose()

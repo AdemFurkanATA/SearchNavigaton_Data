@@ -45,7 +45,8 @@ public sealed class KafkaConsumerWorker(
 
                 using var scope = scopeFactory.CreateScope();
                 var browsingHistoryService = scope.ServiceProvider.GetRequiredService<IBrowsingHistoryService>();
-                await browsingHistoryService.AddAsync(payload.UserId, payload.Properties.ProductId, payload.Timestamp, stoppingToken);
+                await browsingHistoryService.AddAsync(payload.UserId, payload.Properties.ProductId, payload.Timestamp, stoppingToken)
+                    .ConfigureAwait(false);
                 consumer.Commit(message);
             }
             catch (ConsumeException ex)

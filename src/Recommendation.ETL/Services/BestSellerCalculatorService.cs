@@ -7,9 +7,9 @@ public sealed class BestSellerCalculatorService(ApplicationDbContext dbContext) 
 {
     public async Task RebuildByCategoryAsync(CancellationToken cancellationToken = default)
     {
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
-        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM bestsellers_by_category;", cancellationToken);
+        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM bestsellers_by_category;", cancellationToken).ConfigureAwait(false);
         await dbContext.Database.ExecuteSqlRawAsync(
             """
             INSERT INTO bestsellers_by_category (category, product_id, buyer_count, rank, updated_at)
@@ -31,16 +31,16 @@ public sealed class BestSellerCalculatorService(ApplicationDbContext dbContext) 
             ) ranked
             WHERE rank <= 10;
             """,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
-        await transaction.CommitAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task RebuildGeneralAsync(CancellationToken cancellationToken = default)
     {
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
-        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM bestsellers_general;", cancellationToken);
+        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM bestsellers_general;", cancellationToken).ConfigureAwait(false);
         await dbContext.Database.ExecuteSqlRawAsync(
             """
             INSERT INTO bestsellers_general (product_id, buyer_count, rank, updated_at)
@@ -59,8 +59,8 @@ public sealed class BestSellerCalculatorService(ApplicationDbContext dbContext) 
             ) ranked
             WHERE rank <= 10;
             """,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
-        await transaction.CommitAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 }

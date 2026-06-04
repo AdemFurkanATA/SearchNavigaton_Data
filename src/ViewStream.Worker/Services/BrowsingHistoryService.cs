@@ -12,8 +12,8 @@ public sealed class BrowsingHistoryService(IDatabase redis) : IBrowsingHistorySe
 
         var key = GetKey(userId);
         var score = new DateTimeOffset(timestamp).ToUnixTimeSeconds();
-        await redis.SortedSetAddAsync(key, productId, score);
-        await redis.SortedSetRemoveRangeByRankAsync(key, 0, -11);
+        await redis.SortedSetAddAsync(key, productId, score).ConfigureAwait(false);
+        await redis.SortedSetRemoveRangeByRankAsync(key, 0, -11).ConfigureAwait(false);
     }
 
     private static string GetKey(string userId) => $"{KeyPrefix}{userId}";

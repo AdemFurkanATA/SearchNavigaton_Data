@@ -24,7 +24,9 @@ public sealed class PrefixTreeSearchStrategy(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var products = await dbContext.Products.AsNoTracking().ToListAsync(stoppingToken);
+        var products = await dbContext.Products.AsNoTracking()
+            .ToListAsync(stoppingToken)
+            .ConfigureAwait(false);
         foreach (var product in products)
         {
             _productLookup[product.Id] = product;
